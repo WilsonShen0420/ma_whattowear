@@ -12,7 +12,7 @@
 - **語言：** TypeScript (strict mode)
 - **樣式：** Tailwind CSS v4
 - **天氣資料：** 中央氣象署 (CWA) 開放資料 API
-- **AI 生圖：** Google Gemini API (gemini-2.0-flash-exp) — 穿搭圖片生成
+- **AI 生圖：** Google Gemini API (gemini-2.5-flash-preview-04-17) — 穿搭圖片生成
 - **部署平台：** Zeabur
 
 ## 專案結構
