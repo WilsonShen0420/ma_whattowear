@@ -14,7 +14,7 @@ export default function OutfitImage({ outfit, weather }: Props) {
   const [imageData, setImageData] = useState<string | null>(null);
   const [mimeType, setMimeType] = useState<string>("image/png");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   // Track the last request to avoid duplicate calls
   const lastRequestKey = useRef<string>("");
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -26,8 +26,7 @@ export default function OutfitImage({ outfit, weather }: Props) {
     abortControllerRef.current = controller;
 
     setLoading(true);
-    setError(false);
-    setImageData(null);
+    setErrorMessage(null);
 
     try {
       const res = await fetch("/api/outfit-image", {
@@ -57,15 +56,17 @@ export default function OutfitImage({ outfit, weather }: Props) {
       });
 
       if (!res.ok) {
-        throw new Error("Image generation failed");
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || "圖片生成失敗");
       }
 
       const data = await res.json();
       setImageData(data.image);
       setMimeType(data.mimeType || "image/png");
+      setErrorMessage(null);
     } catch (err) {
       if ((err as Error).name !== "AbortError") {
-        setError(true);
+        setErrorMessage((err as Error).message || "圖片生成失敗");
       }
     } finally {
       setLoading(false);
@@ -86,6 +87,7 @@ export default function OutfitImage({ outfit, weather }: Props) {
   }, [weather, outfit, generateImage]);
 
   const handleRegenerate = () => {
+    lastRequestKey.current = ""; // allow re-fetch
     generateImage();
   };
 
@@ -99,28 +101,43 @@ export default function OutfitImage({ outfit, weather }: Props) {
     );
   }
 
-  // Error or no API key → fallback to SVG
-  if (error || !imageData) {
-    return <OutfitFigure outfit={outfit} />;
+  // AI image loaded successfully
+  if (imageData) {
+    return (
+      <div className="w-full flex flex-col items-center gap-2">
+        <img
+          src={`data:${mimeType};base64,${imageData}`}
+          alt="AI 生成穿搭建議圖"
+          className="w-full max-w-[320px] h-auto rounded-xl shadow-sm"
+        />
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-400">由 Gemini AI 生成</span>
+          <button
+            onClick={handleRegenerate}
+            className="text-xs text-blue-500 hover:text-blue-700 transition-colors cursor-pointer"
+          >
+            換一張
+          </button>
+        </div>
+      </div>
+    );
   }
 
-  // Show AI-generated image
+  // Error / fallback → show SVG + error hint + retry button
   return (
-    <div className="w-full flex flex-col items-center gap-2">
-      <img
-        src={`data:${mimeType};base64,${imageData}`}
-        alt="AI 生成穿搭建議圖"
-        className="w-full max-w-[320px] h-auto rounded-xl shadow-sm"
-      />
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-gray-400">由 Gemini AI 生成</span>
-        <button
-          onClick={handleRegenerate}
-          className="text-xs text-blue-500 hover:text-blue-700 transition-colors cursor-pointer"
-        >
-          換一張
-        </button>
-      </div>
+    <div className="w-full flex flex-col items-center gap-3">
+      <OutfitFigure outfit={outfit} />
+      {errorMessage && (
+        <p className="text-xs text-amber-600 text-center">
+          AI 圖片生成失敗：{errorMessage}
+        </p>
+      )}
+      <button
+        onClick={handleRegenerate}
+        className="text-xs text-blue-500 hover:text-blue-700 border border-blue-200 rounded-full px-4 py-1.5 transition-colors cursor-pointer"
+      >
+        使用 AI 生成穿搭圖
+      </button>
     </div>
   );
 }
