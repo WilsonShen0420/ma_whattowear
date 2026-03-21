@@ -12,6 +12,7 @@
 - **語言：** TypeScript (strict mode)
 - **樣式：** Tailwind CSS v4
 - **天氣資料：** 中央氣象署 (CWA) 開放資料 API
+- **AI 生圖：** Google Gemini API (gemini-2.0-flash-exp) — 穿搭圖片生成
 - **部署平台：** Zeabur
 
 ## 專案結構
@@ -19,7 +20,8 @@
 ```
 src/
 ├── app/
-│   ├── api/weather/route.ts   # 天氣 API Route (後端)
+│   ├── api/weather/route.ts       # 天氣 API Route (後端)
+│   ├── api/outfit-image/route.ts  # Gemini AI 生圖 API Route
 │   ├── layout.tsx             # Root Layout
 │   ├── page.tsx               # 首頁 (主要邏輯)
 │   └── globals.css            # 全域樣式
@@ -27,6 +29,7 @@ src/
 │   ├── DateToggle.tsx         # 今天/明天切換
 │   ├── WeatherCard.tsx        # 天氣資訊卡片
 │   ├── OutfitDetails.tsx      # 穿搭文字說明
+│   ├── OutfitImage.tsx        # AI 生成穿搭圖片（含 SVG 回退）
 │   └── outfit/                # SVG 穿搭視覺化元件
 │       ├── BaseFigure.tsx
 │       ├── OutfitFigure.tsx
@@ -55,8 +58,9 @@ npm run lint     # ESLint 檢查
 ## 開發注意事項
 
 - 路徑別名使用 `@/*` 對應 `./src/*`
-- 環境變數放在 `.env.local`，需設定 `CWA_API_KEY`
-- 天氣 API 有 mock 資料回退機制，無 API Key 時仍可開發
+- 環境變數放在 `.env.local`，需設定 `CWA_API_KEY` 和 `GEMINI_API_KEY`
+- 天氣 API 有 mock 資料回退機制，無 CWA API Key 時仍可開發
+- 穿搭圖片使用 Gemini AI 生成，無 GEMINI_API_KEY 時自動回退為 SVG 穿搭圖
 - 前端使用瀏覽器 Geolocation API 取得使用者位置，預設回退為台北 (25.033°N, 121.565°E)
 - SVG 穿搭元件為純 React 元件，新增衣物樣式時請遵循現有的元件結構
 - 穿搭推薦邏輯集中在 `src/lib/outfit/rules.ts`，有 7 個溫度等級
