@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
 
   if (!apiKey) {
     return NextResponse.json(
-      { error: "GEMINI_API_KEY not configured" },
+      { error: "未設定 GEMINI_API_KEY" },
       { status: 500 }
     );
   }
@@ -93,8 +93,25 @@ export async function POST(request: NextRequest) {
     if (!geminiRes.ok) {
       const errText = await geminiRes.text();
       console.error("Gemini API error:", geminiRes.status, errText);
+
+      // Parse error for user-friendly message
+      let userMessage = "圖片生成失敗";
+      try {
+        const errData = JSON.parse(errText);
+        const status = errData?.error?.status;
+        if (status === "RESOURCE_EXHAUSTED") {
+          userMessage = "API 額度已用完，請稍後再試";
+        } else if (status === "INVALID_ARGUMENT") {
+          userMessage = "請求參數錯誤";
+        } else if (status === "PERMISSION_DENIED") {
+          userMessage = "API Key 權限不足";
+        }
+      } catch {
+        // keep default message
+      }
+
       return NextResponse.json(
-        { error: "Image generation failed" },
+        { error: userMessage },
         { status: 502 }
       );
     }
