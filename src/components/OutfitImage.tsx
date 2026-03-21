@@ -29,7 +29,7 @@ export default function OutfitImage({ outfit, weather }: Props) {
   const generateImage = useCallback(async (skipCache = false) => {
     const cacheKey = getCacheKey(weather, outfit);
 
-    // Use cached image if available
+    // Use client-side cached image if available
     if (!skipCache) {
       const cached = imageCache.get(cacheKey);
       if (cached) {
@@ -49,7 +49,8 @@ export default function OutfitImage({ outfit, weather }: Props) {
     setErrorMessage(null);
 
     try {
-      const res = await fetch("/api/outfit-image", {
+      const url = skipCache ? "/api/outfit-image?skipCache=1" : "/api/outfit-image";
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         signal: controller.signal,
