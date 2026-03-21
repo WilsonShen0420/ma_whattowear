@@ -60,11 +60,11 @@ Style requirements:
 }
 
 export async function POST(request: NextRequest) {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
 
   if (!apiKey) {
     return NextResponse.json(
-      { error: "未設定 GEMINI_API_KEY" },
+      { error: "未設定 OPENAI_API_KEY" },
       { status: 500 }
     );
   }
@@ -73,41 +73,36 @@ export async function POST(request: NextRequest) {
     const body: OutfitImageRequest = await request.json();
     const prompt = buildPrompt(body);
 
-    const geminiRes = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent",
+    const openaiRes = await fetch(
+      "https://api.openai.com/v1/images/generations",
       {
         method: "POST",
         headers: {
-          "x-goog-api-key": apiKey,
+          Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            responseModalities: ["IMAGE", "TEXT"],
-          },
+          model: "gpt-image-1",
+          prompt,
+          n: 1,
+          size: "1024x1024",
+          quality: "low",
         }),
       }
     );
 
-    if (!geminiRes.ok) {
-      const errText = await geminiRes.text();
-      console.error("Gemini API error:", geminiRes.status, errText);
+    if (!openaiRes.ok) {
+      const errData = await openaiRes.json().catch(() => null);
+      const errMessage = errData?.error?.message || "";
+      console.error("OpenAI API error:", openaiRes.status, errMessage);
 
-      // Parse error for user-friendly message
       let userMessage = "圖片生成失敗";
-      try {
-        const errData = JSON.parse(errText);
-        const status = errData?.error?.status;
-        if (status === "RESOURCE_EXHAUSTED") {
-          userMessage = "API 額度已用完，請稍後再試";
-        } else if (status === "INVALID_ARGUMENT") {
-          userMessage = "請求參數錯誤";
-        } else if (status === "PERMISSION_DENIED") {
-          userMessage = "API Key 權限不足";
-        }
-      } catch {
-        // keep default message
+      if (openaiRes.status === 429) {
+        userMessage = "API 額度已用完，請稍後再試";
+      } else if (openaiRes.status === 401) {
+        userMessage = "API Key 無效或權限不足";
+      } else if (openaiRes.status === 400) {
+        userMessage = "請求參數錯誤";
       }
 
       return NextResponse.json(
@@ -116,36 +111,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const data = await geminiRes.json();
-    const parts = data?.candidates?.[0]?.content?.parts;
+    const data = await openaiRes.json();
+    const imageBase64 = data?.data?.[0]?.b64_json;
 
-    if (!parts || parts.length === 0) {
+    if (!imageBase64) {
       return NextResponse.json(
-        { error: "No image generated" },
-        { status: 502 }
-      );
-    }
-
-    // Find the image part
-    const imagePart = parts.find(
-      (p: { inlineData?: { mimeType: string; data: string } }) => p.inlineData
-    );
-
-    if (!imagePart?.inlineData) {
-      return NextResponse.json(
-        { error: "No image in response" },
+        { error: "未收到生成圖片" },
         { status: 502 }
       );
     }
 
     return NextResponse.json({
-      image: imagePart.inlineData.data,
-      mimeType: imagePart.inlineData.mimeType,
+      image: imageBase64,
+      mimeType: "image/png",
     });
   } catch (error) {
     console.error("Outfit image generation error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "伺服器內部錯誤" },
       { status: 500 }
     );
   }
