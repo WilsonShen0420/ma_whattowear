@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { OutfitRecommendation } from "@/lib/outfit/types";
 import { WeatherData } from "@/lib/weather/types";
 import OutfitFigure from "@/components/outfit/OutfitFigure";
@@ -17,66 +17,77 @@ export default function OutfitImage({ outfit, weather }: Props) {
   const [error, setError] = useState(false);
   // Track the last request to avoid duplicate calls
   const lastRequestKey = useRef<string>("");
+  const abortControllerRef = useRef<AbortController | null>(null);
 
+  const generateImage = useCallback(async () => {
+    // Abort any in-flight request
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    setLoading(true);
+    setError(false);
+    setImageData(null);
+
+    try {
+      const res = await fetch("/api/outfit-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
+        body: JSON.stringify({
+          weather: {
+            location: weather.location,
+            temperature: weather.temperature,
+            feelsLike: weather.feelsLike,
+            minTemp: weather.minTemp,
+            maxTemp: weather.maxTemp,
+            rainProbability: weather.rainProbability,
+            weatherDesc: weather.weatherDesc,
+          },
+          outfit: {
+            topName: outfit.top.name,
+            bottomName: outfit.bottom.name,
+            outerwearName: outfit.outerwear?.name,
+            accessories: outfit.accessories.map((a) => a.name),
+            rainGearName: outfit.rainGear?.name,
+            temperatureLevel: outfit.temperatureLevel,
+            summary: outfit.summary,
+          },
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Image generation failed");
+      }
+
+      const data = await res.json();
+      setImageData(data.image);
+      setMimeType(data.mimeType || "image/png");
+    } catch (err) {
+      if ((err as Error).name !== "AbortError") {
+        setError(true);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [weather, outfit]);
+
+  // Auto-generate when weather/outfit changes
   useEffect(() => {
     const requestKey = `${weather.location}-${weather.temperature}-${weather.weatherDesc}-${outfit.temperatureLevel}`;
     if (requestKey === lastRequestKey.current) return;
     lastRequestKey.current = requestKey;
 
-    const controller = new AbortController();
-
-    async function generateImage() {
-      setLoading(true);
-      setError(false);
-      setImageData(null);
-
-      try {
-        const res = await fetch("/api/outfit-image", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          signal: controller.signal,
-          body: JSON.stringify({
-            weather: {
-              location: weather.location,
-              temperature: weather.temperature,
-              feelsLike: weather.feelsLike,
-              minTemp: weather.minTemp,
-              maxTemp: weather.maxTemp,
-              rainProbability: weather.rainProbability,
-              weatherDesc: weather.weatherDesc,
-            },
-            outfit: {
-              topName: outfit.top.name,
-              bottomName: outfit.bottom.name,
-              outerwearName: outfit.outerwear?.name,
-              accessories: outfit.accessories.map((a) => a.name),
-              rainGearName: outfit.rainGear?.name,
-              temperatureLevel: outfit.temperatureLevel,
-              summary: outfit.summary,
-            },
-          }),
-        });
-
-        if (!res.ok) {
-          throw new Error("Image generation failed");
-        }
-
-        const data = await res.json();
-        setImageData(data.image);
-        setMimeType(data.mimeType || "image/png");
-      } catch (err) {
-        if ((err as Error).name !== "AbortError") {
-          setError(true);
-        }
-      } finally {
-        setLoading(false);
-      }
-    }
-
     generateImage();
 
-    return () => controller.abort();
-  }, [weather, outfit]);
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, [weather, outfit, generateImage]);
+
+  const handleRegenerate = () => {
+    generateImage();
+  };
 
   // Loading state
   if (loading) {
@@ -101,7 +112,15 @@ export default function OutfitImage({ outfit, weather }: Props) {
         alt="AI 生成穿搭建議圖"
         className="w-full max-w-[320px] h-auto rounded-xl shadow-sm"
       />
-      <span className="text-xs text-gray-400">由 Gemini AI 生成</span>
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-gray-400">由 Gemini AI 生成</span>
+        <button
+          onClick={handleRegenerate}
+          className="text-xs text-blue-500 hover:text-blue-700 transition-colors cursor-pointer"
+        >
+          換一張
+        </button>
+      </div>
     </div>
   );
 }
