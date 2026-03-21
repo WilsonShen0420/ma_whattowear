@@ -108,10 +108,10 @@ export default function OutfitImage({ outfit, weather }: Props) {
         <img
           src={`data:${mimeType};base64,${imageData}`}
           alt="AI 生成穿搭建議圖"
-          className="w-full max-w-[320px] h-auto rounded-xl shadow-sm"
+          className="w-full h-auto rounded-xl shadow-sm"
         />
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-400">由 Gemini AI 生成</span>
+          <span className="text-xs text-gray-400">由 AI 生成</span>
           <button
             onClick={handleRegenerate}
             className="text-xs text-blue-500 hover:text-blue-700 transition-colors cursor-pointer"
