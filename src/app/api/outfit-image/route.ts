@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
     const prompt = buildPrompt(body);
 
     const geminiRes = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-04-17:generateContent",
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent",
       {
         method: "POST",
         headers: {
