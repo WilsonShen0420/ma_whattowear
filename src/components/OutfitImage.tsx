@@ -10,16 +10,36 @@ interface Props {
   weather: WeatherData;
 }
 
+// Cache generated images so switching today/tomorrow doesn't re-generate
+const imageCache = new Map<string, { image: string; mimeType: string }>();
+
+function getCacheKey(weather: WeatherData, outfit: OutfitRecommendation): string {
+  const today = new Date().toISOString().slice(0, 10); // invalidate daily
+  return `${today}-${weather.location}-${weather.temperature}-${weather.weatherDesc}-${outfit.temperatureLevel}`;
+}
+
 export default function OutfitImage({ outfit, weather }: Props) {
   const [imageData, setImageData] = useState<string | null>(null);
   const [mimeType, setMimeType] = useState<string>("image/png");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  // Track the last request to avoid duplicate calls
   const lastRequestKey = useRef<string>("");
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const generateImage = useCallback(async () => {
+  const generateImage = useCallback(async (skipCache = false) => {
+    const cacheKey = getCacheKey(weather, outfit);
+
+    // Use cached image if available
+    if (!skipCache) {
+      const cached = imageCache.get(cacheKey);
+      if (cached) {
+        setImageData(cached.image);
+        setMimeType(cached.mimeType);
+        setErrorMessage(null);
+        return;
+      }
+    }
+
     // Abort any in-flight request
     abortControllerRef.current?.abort();
     const controller = new AbortController();
@@ -64,6 +84,9 @@ export default function OutfitImage({ outfit, weather }: Props) {
       setImageData(data.image);
       setMimeType(data.mimeType || "image/png");
       setErrorMessage(null);
+
+      // Store in cache
+      imageCache.set(cacheKey, { image: data.image, mimeType: data.mimeType || "image/png" });
     } catch (err) {
       if ((err as Error).name !== "AbortError") {
         setErrorMessage((err as Error).message || "圖片生成失敗");
@@ -75,7 +98,7 @@ export default function OutfitImage({ outfit, weather }: Props) {
 
   // Auto-generate when weather/outfit changes
   useEffect(() => {
-    const requestKey = `${weather.location}-${weather.temperature}-${weather.weatherDesc}-${outfit.temperatureLevel}`;
+    const requestKey = getCacheKey(weather, outfit);
     if (requestKey === lastRequestKey.current) return;
     lastRequestKey.current = requestKey;
 
@@ -87,8 +110,7 @@ export default function OutfitImage({ outfit, weather }: Props) {
   }, [weather, outfit, generateImage]);
 
   const handleRegenerate = () => {
-    lastRequestKey.current = ""; // allow re-fetch
-    generateImage();
+    generateImage(true); // skip cache, force new image
   };
 
   // Loading state
@@ -108,10 +130,10 @@ export default function OutfitImage({ outfit, weather }: Props) {
         <img
           src={`data:${mimeType};base64,${imageData}`}
           alt="AI 生成穿搭建議圖"
-          className="w-full max-w-[320px] h-auto rounded-xl shadow-sm"
+          className="w-full h-auto rounded-xl shadow-sm"
         />
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-400">由 Gemini AI 生成</span>
+          <span className="text-xs text-gray-400">由 AI 生成</span>
           <button
             onClick={handleRegenerate}
             className="text-xs text-blue-500 hover:text-blue-700 transition-colors cursor-pointer"
