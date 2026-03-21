@@ -29,7 +29,7 @@ src/
 │   ├── DateToggle.tsx         # 今天/明天切換
 │   ├── WeatherCard.tsx        # 天氣資訊卡片
 │   ├── OutfitDetails.tsx      # 穿搭文字說明
-│   ├── OutfitImage.tsx        # AI 生成穿搭圖片（含 SVG 回退）
+│   ├── OutfitImage.tsx        # AI 生成穿搭圖片（含 SVG 回退、換一張功能）
 │   └── outfit/                # SVG 穿搭視覺化元件
 │       ├── BaseFigure.tsx
 │       ├── OutfitFigure.tsx
@@ -61,6 +61,7 @@ npm run lint     # ESLint 檢查
 - 環境變數放在 `.env.local`，需設定 `CWA_API_KEY` 和 `GEMINI_API_KEY`
 - 天氣 API 有 mock 資料回退機制，無 CWA API Key 時仍可開發
 - 穿搭圖片使用 Gemini AI 生成，無 GEMINI_API_KEY 時自動回退為 SVG 穿搭圖
+- AI 生成圖片下方有「換一張」按鈕，使用者可即時重新生成不同風格的穿搭圖
 - 前端使用瀏覽器 Geolocation API 取得使用者位置，預設回退為台北 (25.033°N, 121.565°E)
 - SVG 穿搭元件為純 React 元件，新增衣物樣式時請遵循現有的元件結構
 - 穿搭推薦邏輯集中在 `src/lib/outfit/rules.ts`，有 7 個溫度等級
