@@ -7,7 +7,7 @@ import { getOutfitRecommendation } from "@/lib/outfit/rules";
 import DateToggle from "@/components/DateToggle";
 import WeatherCard from "@/components/WeatherCard";
 import OutfitDetails from "@/components/OutfitDetails";
-import OutfitFigure from "@/components/outfit/OutfitFigure";
+import OutfitImage from "@/components/OutfitImage";
 
 interface WeatherResponse {
   today: WeatherData;
@@ -117,7 +117,7 @@ export default function Home() {
               {/* 左側：穿搭圖 */}
               <div className="flex flex-col items-center gap-4">
                 <div className="bg-white rounded-2xl shadow-md p-6 w-full flex justify-center">
-                  <OutfitFigure outfit={outfit} />
+                  <OutfitImage outfit={outfit} weather={currentWeather} />
                 </div>
               </div>
 
