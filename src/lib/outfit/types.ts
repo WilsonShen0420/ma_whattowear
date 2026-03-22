@@ -25,8 +25,9 @@ export interface OutfitRecommendation {
 export type TemperatureLevel =
   | "scorching"   // ≥ 33°C 酷熱
   | "hot"         // 28-32°C 炎熱
-  | "warm"        // 23-27°C 溫暖
-  | "cool"        // 18-22°C 涼爽
+  | "warm"        // 25-27°C 溫暖
+  | "mild"        // 21-24°C 舒適
+  | "cool"        // 18-20°C 涼爽
   | "chilly"      // 13-17°C 偏冷
   | "cold"        // 8-12°C 冷
   | "freezing";   // ≤ 7°C 嚴寒

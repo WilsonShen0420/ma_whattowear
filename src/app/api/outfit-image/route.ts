@@ -61,6 +61,7 @@ const TEMPERATURE_LABEL: Record<string, string> = {
   scorching: "酷熱",
   hot: "炎熱",
   warm: "溫暖",
+  mild: "舒適",
   cool: "涼爽",
   chilly: "偏冷",
   cold: "寒冷",
