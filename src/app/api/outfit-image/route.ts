@@ -72,14 +72,29 @@ function buildPrompt(req: OutfitImageRequest): string {
   const levelLabel = TEMPERATURE_LABEL[outfit.temperatureLevel] ?? outfit.temperatureLevel;
 
   let clothingDesc = `上衣：${outfit.topName}、下著：${outfit.bottomName}`;
-  if (outfit.outerwearName) {
-    clothingDesc += `、外套：${outfit.outerwearName}`;
+
+  // 溫暖等級：備用外套不納入圖片
+  // 涼爽等級：外套拿在手上而非穿著
+  const isWarm = outfit.temperatureLevel === "warm";
+  const isCool = outfit.temperatureLevel === "cool";
+
+  if (outfit.outerwearName && !isWarm) {
+    if (isCool) {
+      clothingDesc += `、外套：${outfit.outerwearName}（拿在手上）`;
+    } else {
+      clothingDesc += `、外套：${outfit.outerwearName}`;
+    }
   }
   if (outfit.accessories.length > 0) {
     clothingDesc += `、配件：${outfit.accessories.join("、")}`;
   }
   if (outfit.rainGearName) {
     clothingDesc += `、${outfit.rainGearName}`;
+  }
+
+  let outerwearInstruction = "";
+  if (isCool && outfit.outerwearName) {
+    outerwearInstruction = "\n- The jacket/outerwear should be carried in hand or draped over the arm, NOT worn on the body";
   }
 
   return `Generate a fashion illustration of a single person wearing the following outfit for ${levelLabel} (${weather.weatherDesc}) weather at ${weather.temperature}°C in ${weather.location}, Taiwan:
@@ -92,7 +107,7 @@ Style requirements:
 - Simple solid color background matching the weather mood
 - The clothing should be clearly visible and recognizable
 - Stylish and appealing illustration
-- No text or labels in the image`;
+- No text or labels in the image${outerwearInstruction}`;
 }
 
 async function callOpenAI(apiKey: string, body: OutfitImageRequest): Promise<{ image: string; mimeType: string }> {
