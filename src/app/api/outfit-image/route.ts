@@ -14,7 +14,7 @@ const MAX_CACHE_SIZE = 50; // prevent unbounded memory growth
 function buildCacheKey(body: OutfitImageRequest): string {
   const date = new Date().toISOString().slice(0, 10);
   const { weather, outfit } = body;
-  return `${date}-${weather.location}-${weather.temperature}-${weather.weatherDesc}-${outfit.temperatureLevel}`;
+  return `${date}-${weather.location}-${outfit.temperatureLevel}-${weather.weatherDesc}`;
 }
 
 /** Evict expired entries; if still over limit, remove oldest */
