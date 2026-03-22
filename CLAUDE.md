@@ -72,7 +72,7 @@ npm run lint     # ESLint 檢查
 
 採用兩層快取架構，避免重複呼叫 OpenAI API：
 
-- **伺服器端快取（`route.ts` module-level Map）：** 所有使用者共享，以 `日期-地點-溫度-天氣描述-溫度等級` 為 cache key，24 小時 TTL，上限 50 筆，含並發去重（cache stampede prevention）
+- **伺服器端快取（`route.ts` module-level Map）：** 所有使用者共享，以 `日期-地點-溫度等級-天氣描述` 為 cache key，24 小時 TTL，上限 50 筆，含並發去重（cache stampede prevention）
 - **客戶端快取（`OutfitImage.tsx` module-level Map）：** 單一分頁內有效，切換今天/明天時瞬間顯示已生成的圖片
 - **「換一張」按鈕：** 帶 `?skipCache=1` 參數，同時跳過兩層快取強制重新生成
 - **侷限：** 伺服器端快取為 in-memory，process 重啟或重新部署後會清空；不適用於 serverless 或多機部署場景
