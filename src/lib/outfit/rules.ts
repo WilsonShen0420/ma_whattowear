@@ -5,7 +5,8 @@ import { WeatherData } from "../weather/types";
 function getTemperatureLevel(feelsLike: number): TemperatureLevel {
   if (feelsLike >= 33) return "scorching";
   if (feelsLike >= 28) return "hot";
-  if (feelsLike >= 23) return "warm";
+  if (feelsLike >= 25) return "warm";
+  if (feelsLike >= 21) return "mild";
   if (feelsLike >= 18) return "cool";
   if (feelsLike >= 13) return "chilly";
   if (feelsLike >= 8) return "cold";
@@ -16,6 +17,7 @@ const TEMPERATURE_LABEL: Record<TemperatureLevel, string> = {
   scorching: "酷熱",
   hot: "炎熱",
   warm: "溫暖",
+  mild: "舒適",
   cool: "涼爽",
   chilly: "偏冷",
   cold: "寒冷",
@@ -31,6 +33,8 @@ function getTop(level: TemperatureLevel): ClothingItem {
       return { id: "t-shirt", name: "短袖T恤", category: "top", color: "#87CEEB" };
     case "warm":
       return { id: "t-shirt", name: "短袖T恤", category: "top", color: "#98D8C8" };
+    case "mild":
+      return { id: "long-sleeve", name: "長袖上衣", category: "top", color: "#C5D5E4" };
     case "cool":
       return { id: "long-sleeve", name: "長袖上衣", category: "top", color: "#B8C9E1" };
     case "chilly":
@@ -50,6 +54,8 @@ function getBottom(level: TemperatureLevel): ClothingItem {
       return { id: "shorts", name: "短褲", category: "bottom", color: "#D4C5A9" };
     case "warm":
       return { id: "light-pants", name: "薄長褲", category: "bottom", color: "#A0B4C8" };
+    case "mild":
+      return { id: "light-pants", name: "薄長褲", category: "bottom", color: "#96A8BC" };
     case "cool":
     case "chilly":
       return { id: "thick-pants", name: "長褲", category: "bottom", color: "#4A5568" };
@@ -64,9 +70,9 @@ function getOuterwear(level: TemperatureLevel): ClothingItem | undefined {
   switch (level) {
     case "scorching":
     case "hot":
-      return undefined;
     case "warm":
-      return { id: "light-jacket", name: "薄外套（備用）", category: "outerwear", color: "#D1D5DB" };
+    case "mild":
+      return undefined;
     case "cool":
       return { id: "cardigan", name: "針織外套", category: "outerwear", color: "#9CA3AF" };
     case "chilly":

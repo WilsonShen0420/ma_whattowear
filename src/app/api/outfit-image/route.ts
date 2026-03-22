@@ -61,6 +61,7 @@ const TEMPERATURE_LABEL: Record<string, string> = {
   scorching: "酷熱",
   hot: "炎熱",
   warm: "溫暖",
+  mild: "舒適",
   cool: "涼爽",
   chilly: "偏冷",
   cold: "寒冷",
@@ -73,12 +74,10 @@ function buildPrompt(req: OutfitImageRequest): string {
 
   let clothingDesc = `上衣：${outfit.topName}、下著：${outfit.bottomName}`;
 
-  // 溫暖等級：備用外套不納入圖片
   // 涼爽等級：外套拿在手上而非穿著
-  const isWarm = outfit.temperatureLevel === "warm";
   const isCool = outfit.temperatureLevel === "cool";
 
-  if (outfit.outerwearName && !isWarm) {
+  if (outfit.outerwearName) {
     if (isCool) {
       clothingDesc += `、外套：${outfit.outerwearName}（拿在手上）`;
     } else {
