@@ -15,7 +15,7 @@ const imageCache = new Map<string, { image: string; mimeType: string }>();
 
 function getCacheKey(weather: WeatherData, outfit: OutfitRecommendation): string {
   const today = new Date().toISOString().slice(0, 10); // invalidate daily
-  return `${today}-${weather.location}-${weather.temperature}-${weather.weatherDesc}-${outfit.temperatureLevel}`;
+  return `${today}-${weather.location}-${outfit.temperatureLevel}-${weather.weatherDesc}`;
 }
 
 export default function OutfitImage({ outfit, weather }: Props) {
