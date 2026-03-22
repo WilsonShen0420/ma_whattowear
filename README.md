@@ -49,7 +49,9 @@ OPENAI_API_KEY=你的OpenAI_API_Key
 > **兩個 API Key 皆為選填：** 無 CWA API Key 時使用 mock 天氣資料，無 OpenAI API Key 時回退為 SVG 穿搭圖。
 >
 > - CWA API Key 申請：https://opendata.cwa.gov.tw/
-> - OpenAI API Key 申請：https://platform.openai.com/
+> - OpenAI API Key 申請：https://platform.openai.com/api-keys
+> - OpenAI 使用上限設定：https://platform.openai.com/settings/organization/billing/overview
+> - OpenAI 用量查詢：https://platform.openai.com/usage
 
 啟動開發伺服器：
 
@@ -125,3 +127,11 @@ src/
 8. **瀏覽器 API 運用** — Geolocation API 實作
 9. **快取設計** — 伺服器端與客戶端兩層快取架構
 10. **雲端部署** — Zeabur 平台部署、環境變數管理
+
+---
+
+## 未來規劃 (Roadmap)
+
+- [ ] **縮短伺服器端快取命中時的圖片載入時間** — 目前即使伺服器端已有快取圖片，使用者首次開啟頁面時仍需等待數秒，原因是 base64 編碼的圖片（約 1–2 MB）需透過 HTTP 回應完整傳輸至客戶端。規劃改為將生成的圖片儲存至物件儲存服務（如 Cloudflare R2、AWS S3），API 僅回傳圖片 URL，由瀏覽器直接從 CDN 載入，大幅縮短回應時間與傳輸量。
+- [ ] **自動排程預生成圖片** — 透過 cron job 在每天固定時間（如凌晨 6:00）自動為各主要城市預先生成當日穿搭圖片並寫入快取，讓當天第一位使用者無須等待 OpenAI 生圖即可直接取得結果。
+- [ ] **多時段穿搭建議** — 目前一次僅產生一組穿搭建議，未來將支援「早上 / 下午 / 晚上」最多三個時段的個別建議。系統會根據使用者操作時間自動判斷所需時段數：早上操作顯示三個時段（早上、下午、晚上），下午操作顯示兩個時段（下午、晚上），晚上操作僅顯示一個時段（晚上）。此功能需搭配更細緻的天氣資料來源（如 CWA 鄉鎮逐 3 小時預報 API）。
