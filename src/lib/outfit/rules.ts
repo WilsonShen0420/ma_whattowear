@@ -70,9 +70,7 @@ function getOuterwear(level: TemperatureLevel): ClothingItem | undefined {
   switch (level) {
     case "scorching":
     case "hot":
-      return undefined;
     case "warm":
-      return { id: "light-jacket", name: "薄外套（備用）", category: "outerwear", color: "#D1D5DB" };
     case "mild":
       return undefined;
     case "cool":
