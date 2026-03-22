@@ -64,7 +64,7 @@ npm run lint     # ESLint 檢查
 - AI 生成圖片下方有「換一張」按鈕（帶 `?skipCache=1`），使用者可即時重新生成不同風格的穿搭圖
 - 前端使用瀏覽器 Geolocation API 取得使用者位置，預設回退為台北 (25.033°N, 121.565°E)
 - SVG 穿搭元件為純 React 元件，新增衣物樣式時請遵循現有的元件結構
-- 穿搭推薦邏輯集中在 `src/lib/outfit/rules.ts`，有 7 個溫度等級
+- 穿搭推薦邏輯集中在 `src/lib/outfit/rules.ts`，有 8 個溫度等級
 - 網站語系為繁體中文 (zh-Hant)
 - 不使用資料庫，純 API 驅動 + 客戶端狀態
 
