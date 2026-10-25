@@ -21,8 +21,10 @@
 
 ### 環境需求
 
-- Node.js 18+
+- Node.js 20.9+（`sharp` 0.35.5 的最低需求；部署前請確認 Zeabur 的 Node.js 版本）
 - npm
+
+> 安全性更新：Next.js 與 `eslint-config-next` 固定為 15.5.28，並明確安裝 `sharp` 0.35.5，避免沿用舊版間接依賴。`postcss` 透過 npm `overrides` 固定為 8.5.31，以套用 Next.js 15 原本鎖定版本尚未包含的安全修補。請使用 `npm ci` 安裝已更新的 lockfile。
 
 ### 安裝與啟動
 
